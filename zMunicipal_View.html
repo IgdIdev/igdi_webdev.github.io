@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGU View</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="Search_Files\leaflet-search.css" />
+    <style>
+        
+        
+        /* Basic Reset and Styling */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Mga button sa taas */
+        button, .dropbtn1, .dropbtn2, .dropbtn3, .dropbtn4 {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        button:hover, .dropbtn1:hover, .dropbtn2:hover, .dropbtn3:hover, .dropbtn4:hover {
+            background-color: #0056b3;
+        }
+
+        .dropdown1, .dropdown2, .dropdown3, .dropdown4 {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown1-content, .dropdown2-content, .dropdown3-content, .dropdown4-content {
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 5px;
+        }
+
+        .dropdown1-content a, .dropdown2-content a, .dropdown3-content a, .dropdown4-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            border-radius: 5px;
+        }
+
+        .dropdown1-content a:hover, .dropdown2-content a:hover, .dropdown3-content a:hover, .dropdown4-content a:hover {
+            background-color: #ddd;
+        }
+
+        .dropdown1:hover .dropdown1-content,
+        .dropdown2:hover .dropdown2-content,
+        .dropdown3:hover .dropdown3-content,
+        .dropdown4:hover .dropdown4-content {
+            display: block;
+        }
+
+        /* Submenu styling */
+        .submenu-content1, .submenu-content2, .submenu-content3 {
+            display: none;
+            position: absolute;
+            background-color: #f1f1f1;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 5px;
+            left: 160px; /* Offset to the right of the main dropdown */
+            top: 0;
+        }
+
+        /* Dropdown content styling */
+        .dropdown2-content a {
+            position: relative;
+        }
+
+        /* Hover on the main dropdown items */
+        .dropdown2-content a:nth-child(1):hover + .submenu-content1,
+        .submenu-content1:hover {
+            display: block;
+        }
+
+        .dropdown2-content a:nth-child(3):hover + .submenu-content2,
+        .submenu-content2:hover {
+            display: block;
+        }
+
+        .dropdown2-content a:nth-child(5):hover + .submenu-content3,
+        .submenu-content3:hover {
+            display: block;
+        }
+
+        /* Hover over the Mix link to show the image */
+        .dropdown2-content a:nth-last-child(2):hover + .hover-image { /* Ensure it's the correct link */
+            display: block;
+        }
+
+        /* Hide the image by default */
+        .hover-image {
+            display: none;
+            position: absolute;
+            left: 170px; /* Adjust the position to where you want the image to appear */
+            top: 0;
+            width: 700px; /* Adjust image size */
+            height: auto;
+            z-index: 10; /* Ensure it's on top */
+        }
+
+        /* Show the images on hover */
+        .submenu-content2 a:nth-child(1):hover + .hover-image, /* For Multiple Regression */
+        .submenu-content2 a:nth-child(3):hover + .hover-image, /* For Artificial Neural Networks */
+        .submenu-content3 a:nth-child(1):hover + .hover-image { /* For Geographically Weighted Regression */
+            display: block; /* Show the corresponding image */
+        }
+            /* ^^end of btn sa taas^^ */
+        /* Header Styling */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #60768b;
+            height: 120px; /* Set a height for the header */
+            /*padding: 10px 20px;
+            color: rgb(249, 251, 252); */
+        }
+
+        .logo img {
+            height: 100px; /* Set the desired height */
+            width: auto; /* Maintain aspect ratio */
+        }
+        
+        nav {
+            display: flex;                     /* Enable flexbox for nav */
+            justify-content: center;           /* Center items horizontally */
+            padding: 10px 0;                  /* Add padding for aesthetics */
+        }
+
+        nav ul {
+            list-style: none;                  /* Remove default list styles */
+            display: flex;                     /* Use flexbox for ul */
+            gap: 10px;                        /* Space between dropdowns */
+            margin: 0;                        /* Remove default margin */
+            padding: 0;                       /* Remove default padding */
+        }
+
+        nav ul li a {
+            color: white;                     /* Link color */
+            text-decoration: none;            /* Remove underline */
+            font-weight: bold;                /* Bold text */
+        }
+
+        nav ul li a:hover {
+            text-decoration: underline;        /* Underline on hover */
+        }
+
+        /* Layout: Sidebar and Map Container */
+        .container {
+            display: flex;
+            height: calc(100vh - 60px); /* Full viewport height minus header height */
+        }
+
+        /* TOC Styling */
+        .toc {
+            width: 300px; /* Width of the TOC */
+            background-color: #ecf0f1;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+
+        .toc h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .toc label {
+            display: block;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        /* Map Styling */
+        #map {
+            z-index: 0;
+            flex: 1;
+            height: 100%;
+            width: 100%;
+            position: relative; /* Allow absolute positioning of the search input */
+        }
+
+        /* Adjust the Leaflet controls */
+        .leaflet-control {
+            position: absolute; /* Position the control absolute */
+            top: 0px; /* Move it below the search bar */
+            left: 10px; /* Align with the search bar */
+        }
+
+        /* Adjust Leaflet zoom button size */
+
+
+        .leaflet-control-zoom a {
+            width: 60px; /* Set the width */
+            height: 60px; /* Set the height */
+            font-size: 16px; /* Change font size if needed */
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .toc {
+                width: 100%;
+                height: auto;
+                box-shadow: none;
+            }
+
+            #map {
+                height: 400px; /* Fixed height on smaller screens */
+            }
+        }
+
+        .popup-content {
+            font-size: 20px; /* Adjust the font size as needed */
+            line-height: 1.5; /* Line height for better readability */
+        }  
+
+    </style>
+</head>
+<body>
+
+    <!-- Header Section -->
+<header>
+   <!-- <div class="logo">
+        <img src="Calauan_Laguna_Logo.png" alt="Site Logo">
+    </div> -->
+<nav>
+    <ul>
+        <li class="dropdown1">
+            <button class="dropbtn1">Data Management</button>
+            <div class="dropdown1-content">
+                <a href="#">Sales Data Integration from RPIS</a>
+                <a href="#">Sales Data Migration from other RPTA</a>
+                <a href="#">Sales Data Cleansing</a>
+                <a href="#">Sales Data Validation</a>
+                <a href="#">Sketch</a>
+            </div>
+        </li>
+        
+        <li class="dropdown2">
+            <button class="dropbtn2">Valuation</button>
+            <div class="dropdown2-content">
+                <a href="#">Traditional</a>
+                <div class="submenu-content1">
+                    <a href="#">Market Approach</a>
+                    <a href="#">Cost Approach</a>
+                    <a href="#">Income Approach</a>
+                </div>
+
+                <a href="#">Artificial Intelligence</a>
+                <div class="submenu-content2">
+                    <a href="#">Multiple Regression Analysis</a>
+                    <img src="MRA.jpg" class="hover-image" alt="Multiple Regression Image">
+                    
+                    <a href="#">Artificial Neural Networks</a>
+                    <img src="ANN.jpg" class="hover-image" alt="Artificial Neural Networks">
+
+                    <a href="#">Expert & Decision Support System</a>
+                    <a href="#">Tree Based</a>
+                    <a href="#">Hierarchical</a>
+                    <a href="#">Clustered Analysis</a>
+                    <a href="#">Rough Set</a>
+                    <a href="#">Fuzzy Logic</a>
+                    <a href="#">Genetic Algorithm</a>
+                    <a href="#">Support Vector Machine</a>
+                    <a href="#">Data Envelopment</a>
+                    <a href="#">Conformal Predictor</a>
+                </div>
+
+                <a href="#">Geostatistical</a>
+                <div class="submenu-content3">
+                    <a href="#">Geographically Weighted Regression</a>
+                    <img src="GWR.jpg" class="hover-image" alt="Geographically Weighted Regression">
+
+                    <a href="#">Geographically Weighted Principal Component</a>
+                    <a href="#">Spatial Error Model</a>
+                    <a href="#">Spatial Lag Model</a>
+                    <a href="#">Location Value Response Surface</a>
+                </div>
+
+                <a href="#">Mix</a> <!-- Keeping the "Mix" link -->
+                <img src="MIX.jpg" class="hover-image" alt="Mix Image"> <!-- Image for "Mix" -->
+            </div>
+        </li>
+
+        <li class="dropdown3">
+            <button class="dropbtn3">SMV Development</button>
+            <div class="dropdown3-content">
+                <a href="#">Initialization</a>
+                <a href="#">Urban Lands</a>
+                <a href="#">Agricultural Lands</a>
+                <a href="#">Other Land Types</a>
+                <a href="#">Base Unit Construction Cost</a>
+            </div>
+        </li>
+
+        <li class="dropdown4">
+            <button class="dropbtn4">SMV Review</button>
+            <div class="dropdown4-content"> <!-- Correcting the structure here -->
+                <a href="#">Submit SMV</a>
+            </div>
+        </li>
+    </ul>
+</nav>
+    
+    
+</header>
+
+
+    <!-- Main Content Section -->
+    <div class="container">
+        <!-- Table of Contents Section -->
+        <div class="toc">
+            <h2>Table of Contents</h2>
+
+            <!-- 1st Checkbox -->
+            <h2>Barangay List</h2>
+            <label><input type="checkbox" id="layer1A1stChkbox"> Kanluran</label>
+            <label><input type="checkbox" id="layer1B1stChkbox"> Silangan</label>
+            <!--
+            <label><input type="checkbox"> </label>
+            <label><input type="checkbox"> </label>
+            -->
+            <!-- 2nd Checkbox -->
+            <h2>Section</h2>
+            <label><input type="checkbox" id="layer2A2ndChkbox"> Kanluran</label>
+            <label><input type="checkbox" id="layer2B2ndChkbox"> Silangan</label>
+            <!-- 3rd Checkbox -->
+            <h2>-</h2>
+            <label><input type="checkbox" id="layer3A3rdChkbox"> Lot Value Map</label>
+            <!-- 4th Checkbox -->
+            <h2>-</h2>
+            <label><input type="checkbox" id="layer4A4thChkbox" checked> Brgy. Boundary</label>
+            <label><input type="checkbox" id="layer4B4thChkbox"> Landmarks</label>
+            <label><input type="checkbox" id="layer4C4thChkbox"> Road</label>
+            <!-- 5th Checkbox -->
+            <h2>Base Map</h2>
+            <label><input type="checkbox" id="SatL1MGSD" checked>Satellite</label>
+            <label><input type="checkbox" id="AerialCheckbox">Aerial</label>
+       </div>
+
+        <!-- Map Section -->
+        <div id="map">
+            
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="Search_Files\leaflet-search.src.js"></script>
+    <script>
+        // Initialize the map and set its view to a specific location (latitude, longitude, and zoom level)
+        var map = L.map('map').setView([14.137853, 121.310152], 13);
+        // Brgy. List
+        var wfsUrl_01 = 'http://localhost:8080/geoserver/wfs?service=WFS&version=1.1.0&request=GetFeature&typeNames=cln_dataset:01_kanluran&outputFormat=application/json&srsName=EPSG:4326';
+        var wfsUrl_02 = 'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:02_silangan&outputFormat=application/json&srsName=EPSG:4326';
+        // Boundary / Road / Landmark1s
+        var wfsUrl_03 = 'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:boundary_polygon&outputFormat=application/json&srsName=EPSG:4326';
+        var wfsUrl_04 = 'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:landmarks&outputFormat=application/json&srsName=EPSG:4326';
+        var wfsUrl_05 = 'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:street&outputFormat=application/json&srsName=EPSG:4326';
+        //Zonal chkbox  
+        var wfsUrl_7_BrgyMerge = 'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:01and02merge&outputFormat=application/json&srsName=EPSG:4326';
+                             //  'http://localhost:8080/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeNames=cln_dataset:7_brgy_merged&outputFormat=application/json&srsName=EPSG:4326'; 
+        
+        var layer1, layer2, layer4, layer5;
+        var choroplethLayerSection, choroplethZonal;
+        var SatL1MGSDLayer, AearialImg;
+// <!-- 1st Checkbox -->
+        // Layer 1 Checkbox event listener
+         var layer1A1stChkbox = document.getElementById('layer1A1stChkbox');
+          layer1A1stChkbox.addEventListener('change', function() {
+          if (this.checked) {
+              // Fetch the WFS data when the checkbox is checked
+              fetch(wfsUrl_01)
+                  .then(response => response.json())
+                  .then(data => {
+                    // Create a GeoJSON layer and add it to the map
+                      layer1 = L.geoJSON(data, {
+                          style: function () {
+                              return {
+                                  fillColor: '#000000',   // Fallback color
+                                  fillOpacity: 0,         // No fill
+                                  color: '#FF337F',          // Border color
+                                  weight: 2,              // Border thickness
+                                  opacity: 1              // Border opacity
+                              };
+                          },
+                          onEachFeature: function (feature, layer) {
+                              // Bind a tooltip to show the feature name as a label
+                              if (feature.properties.pin) {
+                                  layer.bindTooltip(feature.properties.pin, {
+                                      permanent: true,
+                                      direction: 'center',
+                                      className: 'feature-label'
+                                  });
+                              }
+                          }
+                      }).addTo(map);
+              })
+              .catch(error => console.error('Error fetching WFS data:', error));
+          } else {
+              // Remove Layer 1A = KANLURAN from the map if unchecked
+          if (layer1) {
+                  map.removeLayer(layer1);
+                  layer1 = null; // Clear the reference
+              }
+          }
+      });
+
+        var layer1B1stChkbox = document.getElementById('layer1B1stChkbox');
+            layer1B1stChkbox.addEventListener('change', function() {
+        if (this.checked) {
+            // Fetch the WFS data when the checkbox is checked
+            fetch(wfsUrl_02)
+                .then(response => response.json())
+                .then(data => {
+                    // Create a GeoJSON layer and add it to the map
+                    layer2 = L.geoJSON(data, {
+                        style: function () {
+                            return {
+                                fillColor: '#000000',   // Fallback color
+                                fillOpacity: 0,         // No fill
+                                color: '#3357FF',          // Border color
+                                weight: 2,              // Border thickness
+                                opacity: 1              // Border opacity
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            // Bind a tooltip to show the feature name as a label
+                            if (feature.properties.pin) {
+                                layer.bindTooltip(feature.properties.pin, {
+                                    permanent: true,
+                                    direction: 'center',
+                                    className: ' feature-label'
+                                });
+                            }
+                        }
+                    }).addTo(map);
+            })
+            .catch(error => console.error('Error fetching WFS data:', error));
+        } else {
+            // Remove Layer 1B = SILANGAN from the map if unchecked
+        if (layer2) {
+                map.removeLayer(layer2);
+                layer2 = null; // Clear the reference
+            }
+        }
+    });
+// <!-- 2nd Checkbox -->    
+// KANLURAN Section (choropleth layer) // KANLURAN Section // KANLURAN Section
+        var layer2A2ndChkbox = document.getElementById('layer2A2ndChkbox');
+            layer2A2ndChkbox.addEventListener('change', function() {
+        if (this.checked) {
+        // Fetch the WFS data for the choropleth layer when checked
+            fetch(wfsUrl_01)
+                .then(response => response.json())
+                .then(data => {
+                choroplethLayerSection = L.geoJSON(data, {
+                    style: styleSection, // Apply custom styling function
+                    onEachFeature: function (feature, layer) {
+                        let popupContent = '<div class="popup-content"><h3>Feature Details</h3>';
+                        for (const property in feature.properties) {
+                            popupContent += `<strong>${property}:</strong> ${feature.properties[property]}<br>`;
+                        }
+                        popupContent += '</div>';
+                        layer.bindPopup(popupContent); // Show details in popup
+                    }
+                }).addTo(map);
+            })
+                .catch(error => console.error('Error fetching WFS data:', error));
+        } else {
+        // Remove the choropleth layer if unchecked
+            if (choroplethLayerSection) {
+                map.removeLayer(choroplethLayerSection);
+                choroplethLayerSection = null; // Clear the reference
+            }
+        }
+    });
+// SILANGAN Section (choropleth layer) // SILANGAN Section // SILANGAN Section 
+        var layer2B2ndChkbox = document.getElementById('layer2B2ndChkbox');
+            layer2B2ndChkbox.addEventListener('change', function () {
+    if (this.checked) {
+        fetch(wfsUrl_02)
+            .then(response => response.json())
+            .then(data => {
+                choroplethLayerSection = L.geoJSON(data, {
+                    style: styleSection, // Apply custom styling function
+                    onEachFeature: function (feature, layer) {
+                        let popupContent = '<div class="popup-content"><h3>Feature Details</h3>';
+                        console.log('Feature properties (layer 2):', feature.properties); // Debugging log
+
+                        for (const property in feature.properties) {
+                            popupContent += `<strong>${property}:</strong> ${feature.properties[property]}<br>`;
+                        }
+                        popupContent += '</div>';
+                        layer.bindPopup(popupContent); // Show details in popup
+                    }
+                }).addTo(map);
+            })
+            .catch(error => console.error('Error fetching WFS data (layer 2):', error));
+    } else {
+        // Remove the choropleth layer if unchecked
+        if (choroplethLayerSection) {
+            map.removeLayer(choroplethLayerSection);
+            choroplethLayerSection = null; // Clear the reference
+        }
+    }
+});
+
+// Function to determine color based on the 'section' attribute for Layer 2
+function getColorSection(section) {
+    console.log('Section being passed to getColor (layer 2):', section); // Debugging log
+    return section === '001' ? '#800026' :
+        section === '002' ? '#BD0026' :
+        section === '003' ? '#E31A1C' :
+        section === '004' ? '#FC4E2A' :
+        section === '005' ? '#FEB24C' :
+        section === '006' ? '#FFEDA0' :
+        section === '1' ? '#800026' :
+        section === '2' ? '#BD0026' :
+        section === '3' ? '#E31A1C' :
+        section === '4' ? '#FC4E2A' :
+        section === '5' ? '#FEB24C' :
+        section === '6' ? '#FFEDA0' :
+                            '#FFFFFF'; // Default color
+}
+
+// Style function for the choropleth layer (Layer 2)
+function styleSection(feature) {
+    return {
+        fillColor: getColorSection(feature.properties.section), // Adjust as per your data structure
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+// <!-- 3rd Checkbox --> 
+ // Zonal Evaluation Map // Zonal Evaluation Map // Zonal Evaluation Map // Zonal Evaluation Map 
+var layer3A3rdChkbox = document.getElementById('layer3A3rdChkbox');
+layer3A3rdChkbox.addEventListener('change', function () {
+    if (this.checked) {
+     fetch(wfsUrl_7_BrgyMerge)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched Data:', data); 
+            choroplethZonal = L.geoJSON(data, {
+                style: styleZonal, // Apply custom styling function
+                onEachFeature: function (feature, layer) {
+                    // Display 'zone_name' as a tooltip on the feature
+                    layer.bindTooltip(String(feature.properties.value || "N/A"), {
+                        permanent: true,
+                        direction: 'center',
+                        className: 'zone-label'
+                    });
+                }
+            }).addTo(map);
+        })
+        .catch(error => console.error('Error fetching WFS data:', error));
+
+    } else {
+        // Remove the choropleth layer if unchecked
+        if (choroplethZonal) {
+            map.removeLayer(choroplethZonal);
+            choroplethZonal = null; // Clear the reference
+        }
+    }
+});
+
+// Function to determine color based on the 'value' // FOR RANGE VALUE
+//function getColorZonal(value) {
+//    value = parseFloat(value);
+//    console.log('Zone code being passed to getColor:', value); // Debugging log
+//    if (value >= 0 && value <= 10000) {
+//        return '#800026'; // Dark Red for 0 to 10,000
+//    } else if (value >= 10001 && value <= 50000) {
+//        return '#BD0026'; // Red for 10,001 to 50,000
+//    } else if (value >= 50001 && value <= 100000) {
+//        return '#E31A1C'; // Medium Red for 50,001 to 100,000
+//    } else if (value >= 100001 && value <= 500000) {
+//        return '#FC4E2A'; // Orange for 100,001 to 500,000
+//    } else if (value >= 500001 && value <= 1000000) {
+//        return '#FD8D3C'; // Light Orange for 500,001 to 1,000,000
+//    } else if (value >= 1000001 && value <= 5000000) {
+//        return '#FEB24C'; // Yellow for 1,000,001 to 5,000,000
+//   } else {
+//        return '#8B0000'; // Default color for any other range
+//    }
+//}
+
+// Function to determine color based on the 'value' // FOR SPECIFIC VALUE
+function getColorZonal(value) {
+    console.log('Zone code being passed to getColor:', value); // Debugging log
+    return value === '1,800' ? '#FF5733' :   // Red-Orange
+            value === '2,000' ? '#33FF57' :   // Green
+            value === '3,000' ? '#3357FF' :   // Blue
+            value === '4,000' ? '#FF33A1' :   // Pink
+                                '#FFFFFF';     // Default white color // Default color
+        }
+// Style function for the choropleth layer (Layer 3)
+function styleZonal(feature) {
+    const color = getColorZonal(feature.properties.value);
+    console.log('Applying color:', color, 'for value:', feature.properties.value);
+    return {
+        fillColor: color,
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
+}
+// <!-- 4th Checkbox -->
+// Brgy. Boundary // Brgy. Boundary// Brgy. Boundary// Brgy. Boundary// Brgy. Boundary// Brgy. Boundary
+// Define WFS URL and checkbox element
+    var layer4A4thChkbox = document.getElementById('layer4A4thChkbox');
+    var layer3 = null; // Declare layer3 globally
+
+    // Function to load the layer if the checkbox is checked
+    function loadLayer() {
+        if (layer4A4thChkbox.checked) {
+            // Remove the existing layer if it exists, to avoid duplication
+            if (layer3) {
+                map.removeLayer(layer3);
+                layer3 = null;
+            }
+
+            // Fetch the WFS data when the checkbox is checked
+            fetch(wfsUrl_03)
+                .then(response => response.json())
+                .then(data => {
+                    // Create a GeoJSON layer with a custom style and labels
+                    layer3 = L.geoJSON(data, {
+                        style: function () {
+                            return {
+                                fillColor: '#000000',   // Fallback color
+                                fillOpacity: 0,         // No fill
+                                color: '#FF337F',          // Border color
+                                weight: 2,              // Border thickness
+                                opacity: 1              // Border opacity
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            // Bind a tooltip to show the feature name as a label
+                            if (feature.properties.name) {
+                                layer.bindTooltip(feature.properties.name, {
+                                    permanent: true,
+                                    direction: 'center',
+                                    className: 'feature-label'
+                                });
+                            }
+                        }
+                    }).addTo(map);
+                })
+                .catch(error => console.error('Error fetching WFS data:', error));
+        }
+    }
+
+    // Event listener for checkbox toggle
+    layer4A4thChkbox.addEventListener('change', function() {
+        if (this.checked) {
+            loadLayer();
+        } else {
+            // Remove the layer from the map when unchecked
+            if (layer3) {
+                map.removeLayer(layer3);
+                layer3 = null; // Clear the reference to prevent duplication
+            }
+        }
+    });
+
+    // Load the layer on page load if the checkbox is already checked
+    window.addEventListener('load', loadLayer);
+
+
+        // Landmarks // Landmarks // Landmarks // Landmarks // Landmarks // Landmarks // Landmarks 
+        var layer4B4thChkbox = document.getElementById('layer4B4thChkbox');
+            layer4B4thChkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Fetch the WFS data when the checkbox is checked
+                    fetch(wfsUrl_04)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Create a GeoJSON layer and add it to the map
+                            layer4 = L.geoJSON(data, {
+                                onEachFeature: function (feature, layer) {
+                    // Create a string to display all properties
+                            let popupContent = '<div class="popup-content"><h3>Feature Details</h3>';
+                                for (const property in feature.properties) {
+                                popupContent += `<strong>${property}:</strong> ${feature.properties[property]}<br>`;
+                            }
+                                popupContent += '</div>'; // Close the popup-content div
+                                layer.bindPopup(popupContent); // Show all details in popup
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(error => console.error('Error fetching WFS data:', error));
+                } else {
+                    // Remove Layer 1A = KANLURAN from the map if unchecked
+                if (layer4) {
+                        map.removeLayer(layer4);
+                        layer4 = null; // Clear the reference
+                    }
+                }
+            });
+        // Road // Road // Road // Road // Road // Road // Road // Road // Road // Road 
+        var layer4C4thChkbox = document.getElementById('layer4C4thChkbox');
+            layer4C4thChkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Fetch the WFS data when the checkbox is checked
+                    fetch(wfsUrl_05)
+                        .then(response => response.json())
+                        .then(data => {
+                            // Create a GeoJSON layer and add it to the map
+                            layer5 = L.geoJSON(data, {
+                                onEachFeature: function (feature, layer) {
+                    // Create a string to display all properties
+                            let popupContent = '<div class="popup-content"><h3>Feature Details</h3>';
+                                for (const property in feature.properties) {
+                                popupContent += `<strong>${property}:</strong> ${feature.properties[property]}<br>`;
+                            }
+                                popupContent += '</div>'; // Close the popup-content div
+                                layer.bindPopup(popupContent); // Show all details in popup
+                            }
+                        }).addTo(map);
+                    })
+                    .catch(error => console.error('Error fetching WFS data:', error));
+                } else {
+                    // Remove Layer 1A = KANLURAN from the map if unchecked
+                if (layer5) {
+                        map.removeLayer(layer5);
+                        layer5 = null; // Clear the reference
+                    }
+                }
+            });
+// <!-- 5th Checkbox -->
+            
+        // Base map layers
+        var wms_1M_SGD = 'http://localhost:8080/geoserver/cln_dataset/wms';
+        var SatL1MGSD = document.getElementById('SatL1MGSD');
+        var SatL1MGSDLayer = L.tileLayer.wms(wms_1M_SGD, {
+        layers: 'cln_dataset:1M_GSD_SatLImg',
+        format: 'image/png',
+        transparent: true,
+        attribution: 'Your Attribution Here',
+        maxZoom: 24,
+
+});
+
+        // Define the new aerial base map layer for POBLACION
+        var poblacionLayer = L.tileLayer.wms(wms_1M_SGD, {
+            layers: 'cln_dataset:POBLACION',
+            format: 'image/png',
+            transparent: true,
+            attribution: 'Your Attribution Here',
+            maxZoom: 24
+        });
+
+       // Add the default OpenStreetMap layer
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+           maxZoom: 24
+         });
+        var currentBaseLayer = osmLayer.addTo(map);
+
+        // Function to switch base maps
+        function switchBaseLayer(newLayer) {
+            if (currentBaseLayer) {
+                map.removeLayer(currentBaseLayer);
+            }
+            currentBaseLayer = newLayer;
+            currentBaseLayer.addTo(map);
+        }
+
+        // Checkbox event listener for the aerial base map
+        document.getElementById('AerialCheckbox').addEventListener('change', function() {
+            if (this.checked) {
+                switchBaseLayer(poblacionLayer);
+                uncheckOtherBoxes('AerialCheckbox');
+            }
+        });
+
+        // Checkbox event listener for SatL1MGSDLayer
+        document.getElementById('SatL1MGSD').addEventListener('change', function() {
+             if (this.checked) {
+                switchBaseLayer(SatL1MGSDLayer);
+                uncheckOtherBoxes('SatL1MGSD');
+            }
+        });
+
+        // Helper function to uncheck other checkboxes
+        function uncheckOtherBoxes(exceptId) {
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                if (checkbox.id !== exceptId) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+
+    // Function to handle fetching data from WFS and adding layers
+    function addWfsLayer(url, propertyName) {
+        return fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Create a GeoJSON layer from the WFS data
+                var wfsLayer = L.geoJSON(data, {
+                    onEachFeature: function (feature, layer) {
+                        // Popup or other interactions with each feature
+                        layer.bindPopup(feature.properties[propertyName] || "No name");
+                    }
+                }).addTo(map);
+                return wfsLayer;  // Return the layer to be used for searching
+            });
+    }
+
+     // Define URLs and active layer variables
+     var activeLayers = [];
+    var layer1Search, layer2Search, layer3Search;
+
+    // Function to update search control with active layers
+    function updateSearchControl() {
+        if (activeLayers.length > 0) {
+            var combinedLayer = L.featureGroup(activeLayers);
+            
+            // Remove any existing search control
+            if (map.searchControl) {
+                map.removeControl(map.searchControl);
+            }
+
+            // Create a new search control with the active layers
+            map.searchControl = new L.Control.Search({
+                position: 'topright',
+                layer: combinedLayer,
+                initial: false,
+                zoom: 18,  // Zoom level when a feature is found
+                marker: false,  // Don't use default markers
+                propertyName: 'name',  // Assuming 'name' is a property in the GeoJSON layers
+                moveToLocation: function(latlng, title, map) {
+                    map.setView(latlng, 18);
+                    // Clear the search input after moving
+                    this._input.value = '';  // Clear input
+                    this._input.blur();       // Remove focus
+                }
+            });
+
+            // Add the new search control
+            map.addControl(map.searchControl);
+        }
+    }
+
+    // Function to handle checkbox toggle and add/remove layers dynamically
+    function toggleLayer(checkbox, url, propertyName, layerVarName) {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Fetch and add the layer if checked
+                addWfsLayer(url, propertyName)
+                    .then(layer => {
+                        window[layerVarName] = layer;  // Store reference to layer
+                        activeLayers.push(layer);  // Add layer to active layers array
+                        updateSearchControl();  // Update the search control
+                    })
+                    .catch(err => console.error('Error fetching WFS data: ', err));
+            } else {
+                // Remove the layer if unchecked
+                if (window[layerVarName]) {
+                    map.removeLayer(window[layerVarName]);  // Remove the layer from the map
+                    activeLayers = activeLayers.filter(l => l !== window[layerVarName]);  // Remove from active layers
+                    window[layerVarName] = null;  // Clear reference
+                    updateSearchControl();  // Update the search control
+                }
+            }
+        });
+    }
+        // FOR SEARCH ACTIVE LAYER POOL
+        // Initialize checkboxes and corresponding layers
+        //<!-- 1st Checkbox Kanluran -->
+        var layer1A1stChkbox = document.getElementById('layer1A1stChkbox');
+        toggleLayer(layer1A1stChkbox, wfsUrl_01, 'name', 'layer1');
+        //<!-- 1st Checkbox Silangan -->
+        var layer1B1stChkbox = document.getElementById('layer1B1stChkbox');
+        toggleLayer(layer1B1stChkbox, wfsUrl_02, 'name', 'layer2');
+        //<!-- 4th Checkbox Brgy. Boundary -->
+        var layer4A4thChkbox = document.getElementById('layer4A4thChkbox');
+        toggleLayer(layer4A4thChkbox, wfsUrl_03, 'name', 'layer3');
+        //<!-- 4th Checkbox Landmark -->
+        var layer4B4thChkbox = document.getElementById('layer4B4thChkbox');
+        toggleLayer(layer4B4thChkbox, wfsUrl_04, 'name', 'layer4');
+        //<!-- 4th Checkbox Road -->
+        var layer4C4thChkbox = document.getElementById('layer4C4thChkbox');
+        toggleLayer(layer4C4thChkbox, wfsUrl_05, 'name', 'layer5');
+        // Initial update to make sure the search control is empty at start
+        updateSearchControl();
+
+    </script>
+
+</body>
+</html>
